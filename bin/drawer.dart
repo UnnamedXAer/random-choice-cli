@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'terminalFormatting.dart';
 
@@ -34,10 +35,10 @@ class Drawer {
 
   Future<String> _draw(
       List<String> data, bool prettyPrint, int lastStepTime) async {
-    data.shuffle();
-
     if (!prettyPrint || data.length == 1) {
-      return data.last;
+      final idx = Random(DateTime.now().microsecondsSinceEpoch)
+          .nextInt(data.length);
+      return data[idx];
     }
 
     _setupTerminalForDraw();
@@ -47,6 +48,7 @@ class Drawer {
     final dataLen = data.length;
     var stepTimes = _calculateStepTimes(dataLen);
     for (var i = 0; i < dataRoundsNumber; i++) {
+      data.shuffle();
       for (var j = 0; j < dataLen; j++) {
         await Future.delayed(Duration(milliseconds: stepTimes[i * dataLen + j]),
             () {
