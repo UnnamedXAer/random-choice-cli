@@ -12,6 +12,16 @@
 			"env": {
 				"DART_ENV": "development"
 			}
+		},
+		{
+			"name": "terminal - random-choice-cli",
+			"request": "launch",
+			"type": "dart",
+			"program": "bin/main.dart",
+			"env": {
+				"DART_ENV": "development"
+			},
+			"console": "externalTerminal"
 		}
 	]
 }
