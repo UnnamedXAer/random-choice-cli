@@ -1,8 +1,7 @@
 import 'dart:io';
 
 List<String> readDataFromStdin() {
-  if (Platform.environment["DART_ENV"] == "development") {
-    print("DART_ENV: ${Platform.environment["DART_ENV"]}");
+  if (Platform.environment.containsKey('VSCODE_PID')) {
     print('using test data');
 
     final data = [

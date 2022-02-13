@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'data.dart';
@@ -28,5 +30,24 @@ void main(List<String> arguments) {
     prettyPrint: options.prettyPrint,
   );
 
-  drawer.drawRandomElement(data);
+  drawer.drawRandomElement(data).whenComplete(() {
+    if (Platform.environment.containsKey('VSCODE_PID')) {
+      return;
+    }
+
+    waitForKeypress();
+  });
+}
+
+void waitForKeypress() {
+  try {
+    // disabling echoMode is required in Win to disable the `lineMode`
+    stdin.echoMode = false;
+    stdin.lineMode = false;
+    print('press any key to exit...');
+  } catch (err) {
+    print("press Enter to exit...");
+  }
+
+  stdin.readByteSync();
 }

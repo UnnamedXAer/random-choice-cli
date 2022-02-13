@@ -19,8 +19,8 @@ class Drawer {
     this.endStepTime = 300,
   });
 
-  void drawRandomElement(List<String> data) {
-    _draw(data, prettyPrint, endStepTime).whenComplete(() {
+  Future<void> drawRandomElement(List<String> data) {
+    return _draw(data, prettyPrint, endStepTime).whenComplete(() {
       _resetTerminalAfterDraw();
     }).then((result) {
       _terminalWrite(formatText(F.resetAllOptions));
