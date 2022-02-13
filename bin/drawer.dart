@@ -36,8 +36,8 @@ class Drawer {
   Future<String> _draw(
       List<String> data, bool prettyPrint, int lastStepTime) async {
     if (!prettyPrint || data.length == 1) {
-      final idx = Random(DateTime.now().microsecondsSinceEpoch)
-          .nextInt(data.length);
+      final idx =
+          Random(DateTime.now().microsecondsSinceEpoch).nextInt(data.length);
       return data[idx];
     }
 
@@ -47,38 +47,66 @@ class Drawer {
     var k = 0;
     final dataLen = data.length;
     var stepTimes = _calculateStepTimes(dataLen);
-    for (var i = 0; i < dataRoundsNumber; i++) {
-      data.shuffle();
-      for (var j = 0; j < dataLen; j++) {
-        await Future.delayed(Duration(milliseconds: stepTimes[i * dataLen + j]),
-            () {
-          k++;
-          if (k == _backgroundColor) k++;
-          _terminalWrite(clearLine());
-          _terminalWrite(setCursorPosition(cursorPosition));
-          _terminalWrite("${c(k % 8)} ${data[j]}");
-        });
+    var j = 0;
+    for (var i = 0; i < stepTimes.length; i++) {
+      j = i % dataLen;
+      if (j == 0) {
+        data.shuffle();
       }
+      await Future.delayed(Duration(milliseconds: stepTimes[i]), () {
+        k++;
+        if (k == _backgroundColor) k++;
+        _terminalWrite(clearLine());
+        _terminalWrite(setCursorPosition(cursorPosition));
+        _terminalWrite("${c(k % 8)} ${data[j]}");
+      });
     }
 
-    return data.last;
+    return data[j];
+  }
+
+  int calculateSteps(int elementsCnt) {
+    if (elementsCnt < 5) {
+      return 15;
+    }
+    if (elementsCnt < 10) {
+      return (elementsCnt * 2.5).round();
+    }
+
+    return Random(DateTime.now().millisecondsSinceEpoch).nextInt(6) + 20;
   }
 
   List<int> _calculateStepTimes(int elementsCnt) {
-    final totalSteps = elementsCnt * dataRoundsNumber;
-    assert(totalSteps > 0, 'total number of steps must be positive');
-    final stepTime = ((endStepTime - _startStepTime) / totalSteps).floor();
+    final maxTime = elementsCnt <= 5 ? 3000 : 5000;
+    final totalSteps = calculateSteps(elementsCnt);
+    final stepTime = ((maxTime * 1.15) / totalSteps).round();
 
-    List<int> stepTimes =
-        List.generate(totalSteps, (i) => 50 + stepTime * (i + 1));
+    List<double> stepTimes = List.generate(
+        totalSteps, (i) => (460 / (totalSteps - 2) * (i + 1)).clamp(50, 500));
 
-    stepTimes = _interpolate<int>(stepTimes, (value) => value);
-
-    return stepTimes;
+    List<int> easedStepTimes = _easeSteps(stepTimes);
+    return easedStepTimes;
   }
 
-  List<T> _interpolate<T>(List<T> values, T Function(T value) calculate) {
-    return values.map(calculate).toList();
+  List<int> _easeSteps(List<double> list) {
+    final len = list.length;
+    final List<int> interpolated = List.filled(len, 0);
+
+    for (var i = 0; i < len; i++) {
+      interpolated[i] = (list[i] * _easeInOutSine(list[i] / list.last))
+          .round()
+          .clamp(40, 550);
+    }
+
+    return interpolated;
+  }
+
+  double _easeInOutSine(double x) {
+    double out = sin((x * pi) / (1.70)); // easeOutSine
+    // double out = 1 - (1 - x) * (1 - x); // easeOutQuad
+    // double out = -(cos(pi * x) - 1) / 2; // ease in out
+    // double out = x < 0.5 ? 2 * x * x : 1 - pow(-2 * x + 2, 2) / 2;
+    return out;
   }
 
   int _findMaxLength(List<String> arr) {
